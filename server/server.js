@@ -2,12 +2,20 @@ const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const Sentry = require("@sentry/node");
 const connectDB = require('./src/config/db');
 const bugRoutes = require('./src/routes/bugRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 dotenv.config();
+
+// Initialize Sentry for error tracking
+Sentry.init({
+  dsn: process.env.SENTRY_DSN_BACKEND,
+  tracesSampleRate: 1.0,
+  environment: process.env.NODE_ENV || 'development',
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
