@@ -1,0 +1,61 @@
+name: Client CI - React Application
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'client/**'
+      - '.github/workflows/client-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'client/**'
+
+jobs:
+  test-and-build:
+    name: Test and Build React App
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: |
+        if npm run | grep -q "lint"; then
+          npm run lint
+        else
+          echo "⚠️ No lint script found, skipping..."
+        fi
+
+    - name: Run tests
+      run: |
+        if npm run | grep -q "test"; then
+          npm test
+        else
+          echo "⚠️ No tests found, skipping..."
+        fi
+
+    - name: Build application
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: client-build
+        path: client/dist/
+        retention-days: 7

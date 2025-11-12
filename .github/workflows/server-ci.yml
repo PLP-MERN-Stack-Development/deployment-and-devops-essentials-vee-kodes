@@ -1,0 +1,62 @@
+name: Server CI - Express.js Backend
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'server/**'
+
+jobs:
+  test-and-build:
+    name: Test and Build Express Backend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: |
+        if npm run | grep -q "lint"; then
+          npm run lint
+        else
+          echo "⚠️ No lint script found, skipping..."
+        fi
+
+    - name: Run tests
+      run: |
+        if npm run | grep -q "test"; then
+          npm test
+        else
+          echo "⚠️ No tests found, skipping..."
+        fi
+      env:
+        NODE_ENV: test
+        MONGO_URI: ${{ secrets.MONGO_ATLAS_URI }}
+
+    - name: Build backend (if needed)
+      run: |
+        if npm run | grep -q "build"; then
+          npm run build
+        else
+          echo "⚠️ No build step required"
+        fi

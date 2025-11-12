@@ -1,0 +1,43 @@
+name: Server CD - Deploy to Render
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-cd.yml'
+  workflow_run:
+    workflows: ["Server CI - Express.js Backend"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success') }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to Render
+      run: |
+        echo "🚀 Deploying Express.js backend to Render..."
+        # Trigger Render deployment via webhook
+        curl -X POST "${{ secrets.RENDER_WEBHOOK_URL }}" \
+          -H "Content-Type: application/json" \
+          -d '{"ref": "main"}'
+          
+    - name: Health Check (wait until live)
+      run: |
+        echo "⏳ Waiting for Render deployment to become healthy..."
+        for i in {1..12}; do  # 12 * 15s = 3 minutes max
+          if curl -fs "${{ secrets.RENDER_APP_URL }}/health" > /dev/null; then
+            echo "✅ Deployment is live!"
+            exit 0
+          fi
+          echo "Still waiting... ($i/12)"
+          sleep 15
+        done
+        echo "❌ Deployment did not become healthy in time"
+        exit 1

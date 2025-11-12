@@ -1,0 +1,50 @@
+name: Client CD - Deploy to Netlify
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'client/**'
+      - '.github/workflows/client-cd.yml'
+  workflow_run:
+    workflows: ["Client CI - React Application"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success') }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install dependencies
+      working-directory: client
+      run: npm ci
+
+    - name: Build application
+      working-directory: client
+      run: npm run build
+      env:
+        VITE_API_BASE_URL: ${{ secrets.RENDER_APP_URL }}
+
+    - name: Deploy to Netlify
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      run: |
+        echo "🚀 Deploying React app to Netlify..."
+        # Install Netlify CLI if needed
+        npm install -g netlify-cli
+        # Deploy to production
+        netlify deploy --dir=dist --prod --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+        
