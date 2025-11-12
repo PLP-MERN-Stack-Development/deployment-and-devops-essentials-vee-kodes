@@ -9,8 +9,8 @@ import { AuthProvider } from './contexts/AuthContext.jsx'
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN_FRONTEND,
   integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration(),
   ],
   tracesSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
