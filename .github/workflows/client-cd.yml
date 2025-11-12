@@ -23,7 +23,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         cache-dependency-path: client/package-lock.json
 
@@ -46,5 +46,5 @@ jobs:
         # Install Netlify CLI if needed
         npm install -g netlify-cli
         # Deploy to production
-        netlify deploy --dir=dist --prod --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+        netlify deploy --dir=client/dist --prod --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
         
