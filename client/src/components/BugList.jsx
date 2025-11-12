@@ -4,7 +4,7 @@ import {Link} from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const BugList = ({ bugs = [], onDelete }) => {
-  const { user, getToken } = useAuth();
+  const { getToken } = useAuth();
 
   const handleDelete = async (bugId) => {
     if (!window.confirm('Are you sure you want to delete this bug?')) {
